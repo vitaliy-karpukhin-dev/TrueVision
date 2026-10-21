@@ -1,104 +1,106 @@
 # TrueVision
 
-**Персональная финансовая система** для физлиц и малого бизнеса.  
-Загружаешь PDF (выписки, счета, бюджеты) — AI извлекает данные, система показывает транзакции, бюджет план/факт, аналитику и календарь платежей.
+**Personal finance system** for individuals and small businesses.  
+Upload PDFs (bank statements, invoices, budgets) and AI extracts the data. The system then shows transactions, budget plan vs. actual, analytics and a payment calendar.
 
-> Контроль. Рост. Уверенность.
+> Control. Growth. Confidence.
+
+**Kurzbeschreibung (DE):** TrueVision ist ein persönliches Finanzsystem für Privatpersonen und Kleinunternehmen. Dokumente wie Kontoauszüge, Rechnungen und Budgets werden als PDF hochgeladen, die KI extrahiert die Daten, und das System zeigt Transaktionen, Budget Plan/Ist, Analysen und einen Zahlungskalender. Eigenes Full-Stack-Projekt mit FastAPI, PostgreSQL, React und Docker; die Oberfläche ist auf Deutsch und Russisch verfügbar.
 
 ---
 
-## Стек
+## Tech Stack
 
-| Слой | Технология |
+| Layer | Technology |
 |---|---|
 | **Frontend** | React 18 + Vite 6, React Router v6, Recharts |
 | **Backend** | FastAPI (Python 3.13), SQLAlchemy, Alembic |
-| **База данных** | PostgreSQL 15 |
+| **Database** | PostgreSQL 15 |
 | **AI** | Anthropic Claude (Vision, Sonnet) + OpenAI GPT-4o |
 | **OCR** | PyMuPDF (fitz) + Tesseract + pdfplumber |
-| **Auth** | JWT (python-jose) + bcrypt + email-верификация |
+| **Auth** | JWT (python-jose) + bcrypt + email verification |
 | **Email** | Gmail SMTP (App Password) |
-| **Инфраструктура** | Docker + Docker Compose, ngrok (dev) |
+| **Infrastructure** | Docker + Docker Compose, ngrok (dev) |
 
 ---
 
-## Структура проекта
+## Project Structure
 
 ```
 TrueVision/
-├── app/                          # FastAPI бэкенд
-│   ├── main.py                   # Точка входа, CORS, роутеры
-│   ├── config.py                 # Загрузка .env + .env.local
+├── app/                          # FastAPI backend
+│   ├── main.py                   # Entry point, CORS, routers
+│   ├── config.py                 # Loads .env + .env.local
 │   ├── db/
 │   │   └── database.py           # SQLAlchemy engine, SessionLocal
 │   ├── models/
-│   │   ├── user.py               # User (JWT auth, email verify)
-│   │   ├── document.py           # Document (файл + extraction_result)
-│   │   ├── financial_event.py    # Транзакции
-│   │   ├── budget.py             # Бюджет по периодам (JSONB)
-│   │   ├── company.py            # Компания пользователя
-│   │   ├── notification.py       # Уведомления
-│   │   └── project.py            # Проекты
+│   │   ├── user.py               # User (JWT auth, email verification)
+│   │   ├── document.py           # Document (file + extraction_result)
+│   │   ├── financial_event.py    # Transactions
+│   │   ├── budget.py             # Budget by period (JSONB)
+│   │   ├── company.py            # User's company
+│   │   ├── notification.py       # Notifications
+│   │   └── project.py            # Projects
 │   ├── routes/
-│   │   ├── auth.py               # /auth — регистрация, логин, верификация
-│   │   ├── upload.py             # /documents — загрузка, анализ, удаление
-│   │   ├── dashboard.py          # /dashboard — метрики, транзакции, прогноз
-│   │   ├── budget.py             # /budget — CRUD бюджета, импорт из PDF, план/факт
-│   │   ├── chat.py               # /chat — AI-ассистент
+│   │   ├── auth.py               # /auth: registration, login, verification
+│   │   ├── upload.py             # /documents: upload, analysis, deletion
+│   │   ├── dashboard.py          # /dashboard: metrics, transactions, forecast
+│   │   ├── budget.py             # /budget: budget CRUD, PDF import, plan vs. actual
+│   │   ├── chat.py               # /chat: AI assistant
 │   │   ├── analysis.py           # /documents/{id}/analyze
 │   │   └── notifications.py      # /notifications
 │   └── services/
-│       ├── email.py              # Gmail SMTP отправка писем
-│       ├── ai.py                 # OpenAI интеграция
-│       ├── extraction.py         # PDF парсинг, агрегация метрик
-│       ├── document_processor.py # Пайплайн обработки документа
-│       └── event_builder.py      # Создание FinancialEvent из анализа
+│       ├── email.py              # Sending emails via Gmail SMTP
+│       ├── ai.py                 # OpenAI integration
+│       ├── extraction.py         # PDF parsing, metric aggregation
+│       ├── document_processor.py # Document processing pipeline
+│       └── event_builder.py      # Creates FinancialEvent from analysis
 │
-├── truevision-frontend/          # React фронтенд
+├── truevision-frontend/          # React frontend
 │   ├── src/
-│   │   ├── App.jsx               # Роутинг, ProtectedRoute
-│   │   ├── api/client.js         # Axios с JWT, прокси /api
-│   │   ├── context/LangContext   # RU / DE локализация
-│   │   ├── locales/i18n.js       # Все переводы
+│   │   ├── App.jsx               # Routing, ProtectedRoute
+│   │   ├── api/client.js         # Axios with JWT, /api proxy
+│   │   ├── context/LangContext   # RU / DE localization
+│   │   ├── locales/i18n.js       # All translations
 │   │   └── pages/
-│   │       ├── Login/            # Авторизация + регистрация
-│   │       ├── VerifyEmail/      # Подтверждение email
-│   │       ├── PathSelection/    # Выбор пути (наёмный / предприниматель)
-│   │       ├── Onboarding/       # Онбординг
-│   │       ├── Dashboard/        # Главная — метрики, график, уведомления
-│   │       ├── Finances/         # Обзор + Бюджет-планировщик
-│   │       ├── Transactions/     # Список транзакций, фильтры, экспорт
-│   │       ├── Documents/        # Загрузка и анализ документов
-│   │       ├── Analytics/        # Графики роста, финмодель
-│   │       ├── Calendar/         # Повторяющиеся платежи
-│   │       ├── AIChat/           # AI-ассистент по финансам
-│   │       └── Profile/          # Профиль, компания, смена пароля
-│   └── vite.config.js            # Прокси /api → localhost:8000
+│   │       ├── Login/            # Login + registration
+│   │       ├── VerifyEmail/      # Email confirmation
+│   │       ├── PathSelection/    # Path selection (employee / entrepreneur)
+│   │       ├── Onboarding/       # Onboarding
+│   │       ├── Dashboard/        # Home: metrics, chart, notifications
+│   │       ├── Finances/         # Overview + budget planner
+│   │       ├── Transactions/     # Transaction list, filters, export
+│   │       ├── Documents/        # Document upload and analysis
+│   │       ├── Analytics/        # Growth charts, financial model
+│   │       ├── Calendar/         # Recurring payments
+│   │       ├── AIChat/           # AI finance assistant
+│   │       └── Profile/          # Profile, company, password change
+│   └── vite.config.js            # Proxy /api → localhost:8000
 │
-├── migrations/                   # Alembic миграции
-├── uploads/                      # Загруженные файлы (не в git)
+├── migrations/                   # Alembic migrations
+├── uploads/                      # Uploaded files (not in git)
 ├── docker-compose.yml
 ├── Dockerfile
 ├── requirements.txt
-├── .env                          # Переменные окружения (не в git)
-└── .env.local                    # Локальные переменные (не в git)
+├── .env                          # Environment variables (not in git)
+└── .env.local                    # Local variables (not in git)
 ```
 
 ---
 
-## Переменные окружения
+## Environment Variables
 
 ### `.env`
 ```env
-# База данных
-DB_USER=admin
-DB_PASSWORD=admin
+# Database
+DB_USER=<db-user>
+DB_PASSWORD=<db-password>
 DB_NAME=truevision
-DB_HOST=db           # localhost для локального запуска без Docker
+DB_HOST=db           # localhost for local runs without Docker
 DB_PORT=5432
 
 # JWT
-SECRET_KEY=your-very-secret-key
+SECRET_KEY=<your-secret-key>
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
 
@@ -111,10 +113,10 @@ SMTP_EMAIL=your@gmail.com
 SMTP_PASSWORD=xxxx xxxx xxxx xxxx
 
 # Misc
-UPLOAD_TOKEN=supersecrettoken123
+UPLOAD_TOKEN=<upload-token>
 ```
 
-### `.env.local` (локальные переопределения)
+### `.env.local` (local overrides)
 ```env
 DB_HOST=localhost
 DB_PORT=5432
@@ -123,170 +125,170 @@ FRONTEND_URL=https://your-ngrok-url.ngrok-free.dev
 
 ---
 
-## Локальный запуск
+## Running Locally
 
-### Требования
+### Requirements
 - Python 3.13+
 - Node.js 18+
 - PostgreSQL 15+
 - Tesseract OCR (`brew install tesseract tesseract-lang`)
 
-### Бэкенд
+### Backend
 ```bash
 cd TrueVision
 
-# Виртуальное окружение
+# Virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
-# Зависимости
+# Dependencies
 pip install -r requirements.txt
 
-# Миграции
+# Migrations
 alembic upgrade head
 
-# Запуск (с авто-перезагрузкой)
+# Run (with auto-reload)
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### Фронтенд
+### Frontend
 ```bash
 cd truevision-frontend
 npm install
 npm run dev -- --host
 ```
 
-### Через Docker
+### With Docker
 ```bash
 docker compose up --build
 ```
 
-Сервисы:
+Services:
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8000
 - Swagger UI: http://localhost:8000/docs
 
-### Через ngrok (публичный доступ)
+### With ngrok (public access)
 ```bash
-# В отдельном терминале
+# In a separate terminal
 ngrok http 5173
 ```
-Swagger через ngrok: `https://your-url.ngrok-free.dev/docs`
+Swagger via ngrok: `https://your-url.ngrok-free.dev/docs`
 
 ---
 
-## API — основные эндпоинты
+## API: Main Endpoints
 
-Полная документация: **http://localhost:8000/docs**
+Full documentation: **http://localhost:8000/docs**
 
 ### Auth `/auth`
-| Метод | Endpoint | Описание |
+| Method | Endpoint | Description |
 |---|---|---|
-| POST | `/auth/register` | Регистрация (отправляет письмо верификации) |
-| POST | `/auth/login` | Логин → JWT токен |
-| GET | `/auth/verify?token=` | Подтверждение email |
-| GET | `/auth/me` | Текущий пользователь |
-| PUT | `/auth/update` | Обновление профиля |
-| POST | `/auth/change-password` | Смена пароля |
+| POST | `/auth/register` | Registration (sends verification email) |
+| POST | `/auth/login` | Login → JWT token |
+| GET | `/auth/verify?token=` | Email confirmation |
+| GET | `/auth/me` | Current user |
+| PUT | `/auth/update` | Update profile |
+| POST | `/auth/change-password` | Change password |
 
 ### Documents `/documents`
-| Метод | Endpoint | Описание |
+| Method | Endpoint | Description |
 |---|---|---|
-| POST | `/documents/upload` | Загрузить PDF / JPG / PNG |
-| GET | `/documents/` | Список документов пользователя |
-| GET | `/documents/{id}` | Скачать файл |
-| POST | `/documents/{id}/analyze` | AI-анализ документа |
-| DELETE | `/documents/{id}` | Удалить документ |
+| POST | `/documents/upload` | Upload PDF / JPG / PNG |
+| GET | `/documents/` | List the user's documents |
+| GET | `/documents/{id}` | Download file |
+| POST | `/documents/{id}/analyze` | AI analysis of a document |
+| DELETE | `/documents/{id}` | Delete document |
 
 ### Budget `/budget`
-| Метод | Endpoint | Описание |
+| Method | Endpoint | Description |
 |---|---|---|
-| GET | `/budget?period=YYYY-MM` | Получить бюджет за период |
-| PUT | `/budget?period=YYYY-MM` | Сохранить бюджет |
-| POST | `/budget/import/{doc_id}` | Импортировать бюджет из PDF |
-| GET | `/budget/actual?period=YYYY-MM` | Фактические расходы из транзакций |
-| GET | `/budget/history` | История бюджетов по периодам |
+| GET | `/budget?period=YYYY-MM` | Get budget for a period |
+| PUT | `/budget?period=YYYY-MM` | Save budget |
+| POST | `/budget/import/{doc_id}` | Import budget from PDF |
+| GET | `/budget/actual?period=YYYY-MM` | Actual spending from transactions |
+| GET | `/budget/history` | Budget history by period |
 
 ### Dashboard `/dashboard`
-| Метод | Endpoint | Описание |
+| Method | Endpoint | Description |
 |---|---|---|
-| GET | `/dashboard?period=` | Метрики: доходы, расходы, score |
-| GET | `/dashboard/transactions` | Список транзакций с фильтрами |
-| POST | `/dashboard/transactions` | Добавить транзакцию вручную |
-| DELETE | `/dashboard/transactions/{id}` | Удалить транзакцию |
-| GET | `/dashboard/chart-data?period=` | Данные для графиков |
-| GET | `/dashboard/forecast` | Прогноз по повторяющимся платежам |
-| GET | `/dashboard/export` | Экспорт CSV |
+| GET | `/dashboard?period=` | Metrics: income, expenses, score |
+| GET | `/dashboard/transactions` | Transaction list with filters |
+| POST | `/dashboard/transactions` | Add a transaction manually |
+| DELETE | `/dashboard/transactions/{id}` | Delete a transaction |
+| GET | `/dashboard/chart-data?period=` | Chart data |
+| GET | `/dashboard/forecast` | Forecast based on recurring payments |
+| GET | `/dashboard/export` | CSV export |
 
 ### Chat `/chat`
-| Метод | Endpoint | Описание |
+| Method | Endpoint | Description |
 |---|---|---|
-| POST | `/chat/query` | Вопрос к AI-ассистенту |
+| POST | `/chat/query` | Ask the AI assistant |
 
 ---
 
-## Как работает AI-анализ документов
+## How AI Document Analysis Works
 
 ```
-PDF / JPG  →  pdfplumber (текст)
+PDF / JPG  →  pdfplumber (text)
                 │
-                ├─ текст найден? → Claude Anthropic (структурирование)
+                ├─ text found? → Claude Anthropic (structuring)
                 │
-                └─ нет текста (image PDF)? → Claude Vision (OCR + анализ)
+                └─ no text (image PDF)? → Claude Vision (OCR + analysis)
                         │
-                        └─ результат → FinancialEvent в БД
+                        └─ result → FinancialEvent in DB
 ```
 
-### Как работает импорт бюджета из PDF (Haushaltsbudget)
+### How Budget Import from PDF Works (Haushaltsbudget)
 
 ```
-PDF  →  pdfplumber (есть текст?)
+PDF  →  pdfplumber (has text?)
           │
-          ├─ Да → Column crop parser (4 колонки: Schutzengel/Wohnen/Leben/Sparen)
-          │           └─ не нашёл → Claude Vision fallback
+          ├─ Yes → Column crop parser (4 columns: Schutzengel/Wohnen/Leben/Sparen)
+          │           └─ nothing found → Claude Vision fallback
           │
-          └─ Нет (image PDF) → OCR по колонкам (PyMuPDF + Tesseract)
-                                    └─ динамическое определение заголовков колонок
-                                           по ключевым словам в содержимом
+          └─ No (image PDF) → Column-wise OCR (PyMuPDF + Tesseract)
+                                    └─ dynamic detection of column headers
+                                           by keywords in the content
 ```
 
-### Бюджет план vs факт
+### Budget Plan vs. Actual
 
 ```
 GET /budget/actual?period=YYYY-MM
     │
-    └─ FinancialEvent за период
+    └─ FinancialEvents for the period
            │
-           └─ маппинг категорий:
+           └─ category mapping:
                 rent        → housing
                 insurance   → insurance
                 expense/
                 materials/
                 software    → living
-                (остальное) → living
+                (everything else) → living
 ```
 
 ---
 
-## Email-верификация
+## Email Verification
 
-1. Пользователь регистрируется → `is_verified=False`, токен сохраняется в БД
-2. Gmail отправляет письмо со ссылкой на `{FRONTEND_URL}/verify-email?token=xxx`
-3. Пользователь кликает → фронтенд вызывает `GET /api/auth/verify?token=xxx`
-4. Бэкенд ставит `is_verified=True` → редирект на `/login`
+1. The user registers → `is_verified=False`, the token is stored in the DB
+2. Gmail sends an email with a link to `{FRONTEND_URL}/verify-email?token=xxx`
+3. The user clicks it → the frontend calls `GET /api/auth/verify?token=xxx`
+4. The backend sets `is_verified=True` → redirect to `/login`
 
-> Если `SMTP_EMAIL` / `SMTP_PASSWORD` не заданы — пользователь авто-верифицируется (для dev-окружения).
-
----
-
-## Локализация
-
-Поддерживаются два языка: **RU** и **DE**.  
-Переключение в хедере приложения. Все строки в `truevision-frontend/src/locales/i18n.js`.
+> If `SMTP_EMAIL` / `SMTP_PASSWORD` are not set, the user is verified automatically (for the dev environment).
 
 ---
 
-## Модели данных
+## Localization
+
+Two languages are supported: **RU** and **DE**.  
+The language can be switched in the app header. All strings are in `truevision-frontend/src/locales/i18n.js`.
+
+---
+
+## Data Models
 
 ### User
 ```
@@ -301,7 +303,7 @@ id, filename, file_path, file_size, status (uploaded/analyzed/processing_failed)
 doc_type, extraction_result (JSONB), payment_status, owner_id, created_at
 ```
 
-### FinancialEvent (транзакции)
+### FinancialEvent (transactions)
 ```
 id, user_id, document_id, event_type, vendor, amount, currency,
 category, event_date, is_recurring, created_at
@@ -324,24 +326,24 @@ id, user_id, title, body, type (info/warning/error), is_read, created_at
 
 ---
 
-## Статус фич
+## Feature Status
 
-| Фича | Статус |
+| Feature | Status |
 |---|---|
-| Аутентификация (JWT + bcrypt + email) | ✅ Готово |
-| Загрузка и AI-анализ документов | ✅ Готово |
-| Бюджет-планировщик (импорт из PDF) | ✅ Готово |
-| Бюджет план vs факт | ✅ Готово |
-| Транзакции (CRUD, фильтры, экспорт) | ✅ Готово |
-| Аналитика (графики, финмодель) | ✅ Готово |
-| Календарь платежей | ✅ Готово |
-| AI Чат | ✅ Готово |
-| Профиль + компания | ✅ Готово |
-| Адаптивный дизайн (мобайл + десктоп) | ✅ Готово |
-| Локализация RU / DE | ✅ Готово |
-| Онбординг (путь «Предприниматель») | 🔄 Частично |
-| Уведомления (UI) | 🔄 Частично |
-| Банковские интеграции (Open Banking) | 📋 Запланировано |
-| Мультивалютность | 📋 Запланировано |
-| Монетизация / подписка | 📋 Запланировано |
-| Мобильное приложение | 📋 Запланировано |
+| Authentication (JWT + bcrypt + email) | ✅ Done |
+| Document upload and AI analysis | ✅ Done |
+| Budget planner (import from PDF) | ✅ Done |
+| Budget plan vs. actual | ✅ Done |
+| Transactions (CRUD, filters, export) | ✅ Done |
+| Analytics (charts, financial model) | ✅ Done |
+| Payment calendar | ✅ Done |
+| AI chat | ✅ Done |
+| Profile + company | ✅ Done |
+| Responsive design (mobile + desktop) | ✅ Done |
+| RU / DE localization | ✅ Done |
+| Onboarding ("Entrepreneur" path) | 🔄 Partial |
+| Notifications (UI) | 🔄 Partial |
+| Bank integrations (Open Banking) | 📋 Planned |
+| Multi-currency | 📋 Planned |
+| Monetization / subscription | 📋 Planned |
+| Mobile app | 📋 Planned |
